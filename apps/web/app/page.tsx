@@ -1,16 +1,12 @@
 import {prismaClient} from "@repo/db/client"
 
-export default function Home() {
+export default async function Home() {
 
-  prismaClient.user.create({
-    data : {
-      username : "nihal",
-      password : "nihal123"
-    }
-  })
+  const user = await prismaClient.user.findFirst();
+  
   return (
     <div>
-      hello
+      hello, {user?.username}
     </div>
   );
 }
