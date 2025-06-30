@@ -17,3 +17,26 @@
     >> add build script
     >> add export alias ./client : "./dist/index.js"
         >> so as to import the client exported from "@repo/prisma/client";
+
+    
+    - initialized a simple http and websocket server
+    - connected all the apps with the common db package
+
+
+# Deployment
+    - create two instances (ec2)
+    1. dev - to push code while development stage
+    2. prod - to push the final ready application, intended for real users
+
+    - install node (following the DO blog)
+    - install nginx to both the servers
+    - install pm2 to both
+
+    - clone the git repo
+    - >> pnpm install
+    - >> build the project
+    - >> finally start via pm2
+    - >> configure nginx
+
+    - done
+
