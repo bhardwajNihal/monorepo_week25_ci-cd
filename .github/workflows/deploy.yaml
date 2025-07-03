@@ -28,14 +28,14 @@ jobs:
           echo "Pulling latest changes..." &&
           git pull origin main &&
           echo "Installing dependencies..." &&
-          pnpm install &&
+          /home/ubuntu/.nvm/versions/node/v22.17.0/bin/pnpm install &&
           echo "Building apps..." &&
-          pnpm run build &&
+          /home/ubuntu/.nvm/versions/node/v22.17.0/bin/pnpm run build &&
           echo "Reloading PM2 apps..." &&
-          pm2 reload all || true &&
+          /home/ubuntu/.nvm/versions/node/v22.17.0/bin/pm2 reload all || true &&
           echo "Starting apps via PM2..." &&
-          pm2 start npm --name http-server -- run start --prefix apps/http-server &&
-          pm2 start npm --name next-fe -- run start --prefix apps/web &&
-          pm2 start npm --name ws-server -- run start --prefix apps/ws-server &&
+          /home/ubuntu/.nvm/versions/node/v22.17.0/bin/pm2 start npm --name http-server -- run start --prefix apps/http-server &&
+          /home/ubuntu/.nvm/versions/node/v22.17.0/bin/pm2 start npm --name next-fe -- run start --prefix apps/web &&
+          /home/ubuntu/.nvm/versions/node/v22.17.0/bin/pm2 start npm --name ws-server -- run start --prefix apps/ws-server &&
           echo "✅ Deploy complete!"
         '
