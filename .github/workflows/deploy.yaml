@@ -23,19 +23,19 @@ jobs:
 
     - name: SSH and deploy changes to EC2
       run: |
-        ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "
+        ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
           cd ~/monorepo_week_25_ci-cd &&
-          echo 'Pulling latest changes...' &&
+          echo "Pulling latest changes..." &&
           git pull origin main &&
-          echo 'Installing dependencies...' &&
+          echo "Installing dependencies..." &&
           pnpm install &&
-          echo "Building apps...' &&
+          echo "Building apps..." &&
           pnpm run build &&
-          echo 'Reloading PM2 apps --if running...' &&
+          echo "Reloading PM2 apps..." &&
           pm2 reload all || true &&
-          echo 'Starting apps via PM2...' &&
+          echo "Starting apps via PM2..." &&
           pm2 start npm --name http-server -- run start --prefix apps/http-server &&
           pm2 start npm --name next-fe -- run start --prefix apps/web &&
           pm2 start npm --name ws-server -- run start --prefix apps/ws-server &&
-          echo '✅ Deploy complete!'
-        "
+          echo "✅ Deploy complete!"
+        '
