@@ -24,18 +24,19 @@ jobs:
     - name: SSH and deploy changes to EC2
       run: |
         ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
+          export PATH=$PATH:/home/ubuntu/.nvm/versions/node/v22.17.0/bin &&
           cd ~/monorepo_week25_ci-cd &&
           echo "Pulling latest changes..." &&
           git pull origin main &&
           echo "Installing dependencies..." &&
-          /home/ubuntu/.nvm/versions/node/v22.17.0/bin/pnpm install &&
+          pnpm install &&
           echo "Building apps..." &&
-          /home/ubuntu/.nvm/versions/node/v22.17.0/bin/pnpm run build &&
+          pnpm run build &&
           echo "Reloading PM2 apps..." &&
-          /home/ubuntu/.nvm/versions/node/v22.17.0/bin/pm2 reload all || true &&
+          pm2 reload all || true &&
           echo "Starting apps via PM2..." &&
-          /home/ubuntu/.nvm/versions/node/v22.17.0/bin/pm2 start npm --name http-server -- run start --prefix apps/http-server &&
-          /home/ubuntu/.nvm/versions/node/v22.17.0/bin/pm2 start npm --name next-fe -- run start --prefix apps/web &&
-          /home/ubuntu/.nvm/versions/node/v22.17.0/bin/pm2 start npm --name ws-server -- run start --prefix apps/ws-server &&
+          pm2 start npm --name http-server -- run start --prefix apps/http-server &&
+          pm2 start npm --name next-fe -- run start --prefix apps/web &&
+          pm2 start npm --name ws-server -- run start --prefix apps/ws-server &&
           echo "✅ Deploy complete!"
         '
