@@ -1,0 +1,41 @@
+name: Deploy to EC2 on push
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy to EC2 as soon as any change is pushed to main
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code (fetch repo to GitHub VM)
+      uses: actions/checkout@v3
+
+    - name: Setup SSH (GitHub identity for EC2 to recognize it)
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_ed25519
+        chmod 600 ~/.ssh/id_ed25519
+        ssh-keyscan ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+    - name: SSH and deploy changes to EC2
+      run: |
+        ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "
+          cd ~/monorepo_week_25_ci-cd &&
+          echo 'Pulling latest changes...' &&
+          git pull origin main &&
+          echo 'Installing dependencies...' &&
+          pnpm install &&
+          echo "Building apps...' &&
+          pnpm run build &&
+          echo 'Reloading PM2 apps (if running)...' &&
+          pm2 reload all || true &&
+          echo 'Starting apps via PM2...' &&
+          pm2 start npm --name http-server -- run start --prefix apps/http-server &&
+          pm2 start npm --name next-fe -- run start --prefix apps/web &&
+          pm2 start npm --name ws-server -- run start --prefix apps/ws-server &&
+          echo '✅ Deploy complete!'
+        "
