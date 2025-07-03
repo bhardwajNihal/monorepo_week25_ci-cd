@@ -83,47 +83,62 @@
     # all the processes are now successfully running on the clean urls
 
 
-## wrote basic CI script to deploy changes app as soon as a push happens to main branch.
+## CI script to deploy changes app as soon as a push happens to main branch.
 
-name: Deploy to EC2 on push
+1. SSH Key Pair Setup
+    - generated a key pair to allow GitHub Actions to connect to EC2.
+    - Used: ssh-keygen -t ed25519 -C "github-actions"
+    - Added public key (.pub) to EC2 instance's ~/.ssh/authorized_keys.
+    - Stored private key (full content including -----BEGIN...END-----) in GitHub Secrets as EC2_SSH_KEY.
 
-on:
-  push:
-    branches:
-      - main
+2. GitHub Secrets
+    EC2_SSH_KEY	-  Private SSH key for GitHub Actions to use
+    EC2_HOST	-  EC2's public IP (e.g., 13.233.xxx.xxx)
+    EC2_USER	-  ubuntu (vm's select OS)
 
-jobs:
-  deploy:
-    name: Deploy to EC2 as soon as any change is pushed to main
-    runs-on: ubuntu-latest
+3. script in .github/workflows/deploy.yaml
+    name: Deploy to EC2 on push
 
-    steps:
-    - name: Checkout code (fetch repo to GitHub VM)
-      uses: actions/checkout@v3
+    on:
+    push:
+        branches:
+        - main
 
-    - name: Setup SSH (GitHub identity for EC2 to recognize it)
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_ed25519
-        chmod 600 ~/.ssh/id_ed25519
-        ssh-keyscan ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+    jobs:
+    deploy:
+        name: Deploy to EC2 as soon as any change is pushed to main
+        runs-on: ubuntu-latest
 
-    - name: SSH and deploy changes to EC2
-      run: |
-        ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
-          export PATH=$PATH:/home/ubuntu/.nvm/versions/node/v22.17.0/bin &&
-          cd ~/monorepo_week25_ci-cd &&
-          echo "Pulling latest changes..." &&
-          git pull origin main &&
-          echo "Installing dependencies..." &&
-          pnpm install &&
-          echo "Building apps..." &&
-          pnpm run build &&
-          echo "Reloading PM2 apps..." &&
-          pm2 reload all || true &&
-          echo "Starting apps via PM2..." &&
-          pm2 start npm --name http-server -- run start --prefix apps/http-server &&
-          pm2 start npm --name next-fe -- run start --prefix apps/web &&
-          pm2 start npm --name ws-server -- run start --prefix apps/ws-server &&
-          echo "✅ Deploy complete!"
-        '
+        steps:
+        - name: Checkout code (fetch repo to GitHub VM)
+        uses: actions/checkout@v3
+
+        - name: Setup SSH (GitHub identity for EC2 to recognize it)
+        run: |
+            mkdir -p ~/.ssh
+            echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_ed25519
+            chmod 600 ~/.ssh/id_ed25519
+            ssh-keyscan ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+        - name: SSH and deploy changes to EC2
+        run: |
+            ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
+            export PATH=$PATH:/home/ubuntu/.nvm/versions/node/v22.17.0/bin &&
+            cd ~/monorepo_week25_ci-cd &&
+            echo "Pulling latest changes..." &&
+            git pull origin main &&
+            echo "Installing dependencies..." &&
+            pnpm install &&
+            echo "Building apps..." &&
+            pnpm run build &&
+            echo "Reloading PM2 apps..." &&
+            pm2 reload all || true &&
+            echo "Starting apps via PM2..." &&
+            pm2 start npm --name http-server -- run start --prefix apps/http-server &&
+            pm2 start npm --name next-fe -- run start --prefix apps/web &&
+            pm2 start npm --name ws-server -- run start --prefix apps/ws-server &&
+            echo "✅ Deploy complete!"
+            '
+    # note
+        - provide path to node is important, without it, process can't be run
+        - as packages are though installed, but path to it is unknown, hence can't be used in github temporarily set VM (set to ssh into original remote VM)
