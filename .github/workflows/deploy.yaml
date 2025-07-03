@@ -31,7 +31,7 @@ jobs:
           pnpm install &&
           echo "Building apps...' &&
           pnpm run build &&
-          echo 'Reloading PM2 apps (if running)...' &&
+          echo 'Reloading PM2 apps --if running...' &&
           pm2 reload all || true &&
           echo 'Starting apps via PM2...' &&
           pm2 start npm --name http-server -- run start --prefix apps/http-server &&
